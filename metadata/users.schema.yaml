@@ -1,7 +1,12 @@
 ####
 #### Use kwalify and this schema to validate the config files.
-#### Example:
+####
+#### Example hash generation:
+####    echo "foo.bar@bib.edu" | md5sum
+####
+#### Examples:
 ####    kwalify -f ./metadata/users.schema.yaml ./metadata/users.yaml
+####    kwalify -f ./metadata/users.schema.yaml ./metadata/users.yaml | grep INVALID; test $? -ne 0
 ####
 type: seq
 sequence:
@@ -11,6 +16,12 @@ sequence:
         type: str
         required: true
         unique: true
+        pattern: /^[\/\.\-\:\w]+$/
+      "xref":
+        type: str
+        required: false
+        unique: true
+        pattern: /^\w+:\w+$/
       "nickname":
         type: str
         required: true
@@ -24,12 +35,97 @@ sequence:
         required: false
         mapping:
           "termgenie-go":
-            type: str
+            type: map
             required: false
-          "minerva-go":
-            type: bool
+            mapping:
+              "allow-write":
+                type: bool
+                required: false
+              "allow-review":
+                type: bool
+                required: false
+              "allow-management":
+                type: bool
+                required: false
+              "allow-freeform":
+                type: bool
+                required: false
+              "allow-freeform-litxref-optional":
+                type: bool
+                required: false
+          ## Legacy "noctua-go".
+          "noctua-go":
+            type: map
             required: false
-      "xref":
+            mapping:
+              "allow-edit":
+                type: bool
+                required: false
+              "allow-admin":
+                type: bool
+                required: false
+              "temporary-user":
+                type: bool
+                required: false
+              "model-lock":
+                type: seq
+                required: false
+                sequence:
+                  - type: str
+          ## Template for further additions.
+          "noctua":
+            type: map
+            required: false
+            mapping:
+              "go": &noctua_auth_template
+                type: map
+                required: false
+                mapping:
+                  "allow-edit":
+                    type: bool
+                    required: false
+                  "allow-admin":
+                    type: bool
+                    required: false
+                  "temporary-user":
+                    type: bool
+                    required: false
+                  "model-lock":
+                    type: seq
+                    required: false
+                    sequence:
+                      - type: str
+              "monarch": *noctua_auth_template
+              "open": *noctua_auth_template
+      "comment":
         type: str
         required: false
-        unique: true
+      "organization":
+        type: str
+        required: false
+      "groups":
+        type: seq
+        required: false
+        sequence:
+          - type: str
+      "accounts":
+        type: map
+        required: false
+        mapping:
+          "google-plus":
+            type: str
+            required: false
+            unique: true
+          "github":
+            type: str
+            required: false
+            unique: true
+          "orcid":
+            type: str
+            required: false
+            unique: true
+          "email-md5":
+            type: seq
+            required: false
+            sequence:
+              - type: str
